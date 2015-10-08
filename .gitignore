@@ -7,3 +7,4 @@
 
 #ignore binary videos
 *.mp4
+packrat/lib*/
