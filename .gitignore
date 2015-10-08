@@ -1,3 +1,9 @@
 .Rproj.user
 .Rhistory
 .RData
+#knit intermediate and final files
+*.html
+*.md
+
+#ignore binary videos
+*.mp4
