@@ -1,0 +1,35 @@
+---
+title: "Possible Questions for Yelp Data"
+author: "David F. Severski (@dseverski)"
+date: "October 7, 2015"
+output: 
+  html_document: 
+    toc: yes
+---
+
+
+# The Challenge
+
+
+Not only would we like to give you our data, we’d also like to announce the sixth round of the Yelp Dataset Challenge. We challenge you to use this data in an innovative way and break ground in research. Here are some examples of topics we find interesting, but remember these are only to get you thinking and we welcome novel approaches!
+
+## Cultural Trends
+By adding a diverse set of cities, we want participants to compare and contrast what makes a particular city different. For example, are people in international cities less concerned about driving in to a business, indicated by their lack of mention about parking? What cuisines are Yelpers raving about in these different countries? Do Americans tend to eat out late compared to the Germans and English? In which countries are Yelpers sticklers for service quality? In international cities such as Montreal, are French speakers reviewing places differently than English speakers?
+
+## Location Mining and Urban Planning
+How much of a business' success is really just location, location, location? Do you see reviewers' behavior change when they travel?
+
+## Seasonal Trends
+What about seasonal effects: Are HVAC contractors being reviewed just at onset of winter, and manicure salons at onset of summer? Are there more reviews for sports bars on major game days and if so, could you predict that?
+
+## Infer Categories
+Do you see any non-intuitive correlations between business categories e.g., how many karaoke bars also offer Korean food, and vice versa? What businesses deserve their own subcategory (i.e., Szechuan or Hunan versus just "Chinese restaurants"), and can you learn this from the review text?
+
+## Natural Language Processing (NLP)
+How well can you guess a review's rating from its text alone? What are the most common positive and negative words used in our reviews? Are Yelpers a sarcastic bunch? And what kinds of correlations do you see between tips and reviews: could you extract tips from reviews?
+
+## Changepoints and Events
+Can you detect when things change suddenly (i.e. a business coming under new management)? Can you see when a city starts going nuts over cronuts?
+
+## Social Graph Mining
+Can you figure out who the trend setters are and who found the best waffle joint before waffles were cool? How much influence does my social circle have on my business choices and my ratings?
