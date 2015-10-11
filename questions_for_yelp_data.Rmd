@@ -7,6 +7,14 @@ output:
     toc: yes
 ---
 
+# David's commentary
+
+This one sounds interesting.
+
+```
+## Changepoints and Events
+Can you detect when things change suddenly (i.e. a business coming under new management)? Can you see when a city starts going nuts over cronuts?
+```
 
 # The Challenge
 
