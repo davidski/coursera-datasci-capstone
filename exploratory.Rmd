@@ -15,6 +15,7 @@ Examples of the data are at https://github.com/Yelp/dataset-examples
 library(jsonlite)
 library(dplyr)
 library(lubridate)
+library(ggplot2)
 ```
 
 ```{r read_from_json, eval=FALSE}
@@ -86,3 +87,80 @@ Tips data summary is:
 knitr::kable(summary(tips))
 ```
 
+# Let's try some exploratory plots
+
+## Business
+
+Lots of data for a few states. AZ is particularly heavy.
+
+```{r}
+ggplot(business, aes(x=reorder(state, as.numeric(state), function(y) {-1*length(y)}))) +geom_bar()
+```
+
+
+## Common Cateogries
+What are the most common categories?
+```{r}
+data.frame(categories = unlist(business$categories)) %>% 
+  group_by(categories)  %>% tally()  %>% 
+  arrange(desc(n)) %>% top_n(10)
+data.frame(categories = unlist(business$categories)) %>% 
+  group_by(categories)  %>% tally()  %>% 
+  arrange(desc(n)) %>% top_n(25) %>% ggplot() -> gg
+gg + geom_bar(aes(x=factor(categories, rev(as.character(categories))), y=n), 
+              stat="identity") + coord_flip() + theme_minimal()
+
+```
+
+
+## Ratings of restaurants
+
+
+```{r}
+business$restaurants <- unlist(lapply(business$categories, function(x) {
+  "Restaurants" %in% x}))
+dat <- business[business$restaurants==TRUE, c('stars', 'state')]
+ggplot(dat, aes(x=state, y=stars)) + geom_boxplot() +
+  theme_minimal()
+#+ geom_line(aes(y=mean(stars))
+```
+
+What are the most common categories associated with restaurants?
+```{r}
+dat <- business[business$restaurants==TRUE,]
+data.frame(categories = unlist(dat$categories)) %>% 
+  filter(categories != "Restaurants") %>% 
+  group_by(categories)  %>% tally()  %>% 
+  arrange(desc(n)) %>% top_n(20)
+```
+
+```{r}
+business[business$review_count > 100,] %>% ggplot(aes(x=review_count)) + geom_histogram() + facet_wrap(~ state, scales = "free_y")
+```
+
+```{r}
+library(maps)
+library(mapproj)
+us <- map_data("state")
+ca <- map_data("world", "Canada")
+fr <- map_data("france")
+
+xlim = c(-110,-100)
+ylim = c(40,60)
+dat_grid = expand.grid(x = xlim[1]:xlim[2], y = ylim[1]:ylim[2])
+dat_grid$z = runif(nrow(dat_grid))
+
+gg <- ggplot()
+gg <- gg + geom_point(data=business, aes(x=longitude, y=latitude, color=stars))
+gg <- gg + geom_tile() + 
+  geom_polygon(data=us, aes(x=long, y=lat, group=group), colour="black", fill="white", alpha=0) + 
+  geom_polygon(data=ca, aes(x=long, y=lat, group=group), colour="black", fill="white", alpha=0) +
+  geom_polygon(data=fr, aes(x=long, y=lat, group=group), colour="black", fill="white", alpha=0)
+gg + coord_map("albers", at0= 45.5, lat1=29.5)
+gg <- gg + theme_minimal()
+gg
+```
+
+```{r}
+table(business[business$longitude>-10,c("state")])
+```
