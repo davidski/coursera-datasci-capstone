@@ -1,0 +1,116 @@
+---
+title: "Quiz 1"
+author: "David F. Severski (@dseverski)"
+date: "October 18, 2015"
+output: html_document
+---
+
+```{r, echo=FALSE}
+library(dplyr)
+```
+
+# Question 1
+
+After untaring the the dataset, how many files are there (including the documentation pdfs)?
+
+Answer: 7
+
+```{r}
+dir('./data/yelp_dataset_challenge_academic_dataset') %>% length
+```
+
+# Question 2
+
+The data files are in what format?
+
+Answer: JSON
+
+# Question 3
+
+How many lines of text are there in the reviews file (in orders of mangnitude)?
+
+Answer: one millions
+
+
+```{r}
+dim(reviews)
+```
+
+# Question 4
+
+Consider line 100 of the reviews file. I've been going to the gran n Eat for almost XXX years'
+
+Answer: 20
+
+```{r}
+reviews[100,"text"]
+```
+
+# Question 5
+What percentage of teh review are five star reviews?
+
+Answer: 37%
+
+```{r}
+reviews %>% group_by(stars) %>% 
+  tally %>% mutate(pct=(100*n)/sum(n))
+```
+
+
+# Question 6
+
+How many lines are there in the businesses file?
+
+Answer: Around 60 thousand
+
+```{r}
+dim(business)
+```
+
+# Question 7
+
+Conditional on having an response for the attribute "Wi-Fi", how many businesses are reported for having free wi-fi (rounded to the nearest percentage point)? 
+
+Answer: 40%
+```{r}
+wifi <- data.frame(wifi=bus_attributes$`Wi-Fi`)
+wifi %>% group_by(wifi) %>% 
+  filter(!is.na(wifi)) %>% 
+  tally %>% mutate(pct = (100* n) / sum(n))
+```
+
+# Question 8
+
+About 500 thousand
+
+# Question 9
+
+In the tips file on the 1,000th line, fill in the blank: "Consistently terrible ______"
+
+Answer: service
+
+```{r}
+tips[1000,]
+```
+
+# Question 10
+
+Answer: Brian
+
+```{r}
+user_id <- compliments %>% filter(funny >10000) %>% select(row_number) %>% as.numeric
+users[user_id,"name"]
+```
+
+
+# Question 11
+
+Create a 2 by 2 cross tabulation table of when a user has more than 1 fans to if the user has more than 1 compliment of type "funny". Treat missing values as 0 (fans or votes of that type). Pass the 2 by 2 table to fisher.test in R. What is the P-value for the test of independence?
+
+Answer: less than .001
+
+```{r}
+compliments$many_fans <- users$fans > 1
+table(compliments$many_fans, compliments$funny>1)
+fisher.test(table(compliments$many_fans, compliments$funny>1))
+```
