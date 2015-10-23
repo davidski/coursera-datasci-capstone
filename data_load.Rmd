@@ -1,0 +1,110 @@
+---
+title: "Data Loading"
+author: "David F. Severski (@dseverski)"
+date: "October 7, 2015"
+output: 
+  html_document: 
+    toc: yes
+---
+
+Data is from the [Yelp dataset challenge](http://www.yelp.com/dataset_challenge)
+
+Examples of the data are at https://github.com/Yelp/dataset-examples
+
+```{r library_load}
+library(jsonlite)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(tidyr)
+library(pbapply)
+```
+
+```{r read_from_json, eval=FALSE}
+reviews <- stream_in(file("./data/yelp_academic_dataset_review.json"))
+checkins <- stream_in(file("./data/yelp_academic_dataset_checkin.json"))
+tips <- stream_in(file("./data/yelp_academic_dataset_tip.json"))
+business <- stream_in(file("./data/yelp_academic_dataset_business.json"))
+users <- stream_in(file("./data/yelp_academic_dataset_user.json"), verbose = TRUE)
+```
+
+```{r read_from_rdata}
+load('data/business.Rdata')
+load('data/checkins.Rdata')
+load('data/reviews.Rdata')
+load('data/tips.Rdata')
+load('data/users.Rdata')
+```
+
+
+```{r show_names, echo=FALSE}
+names(business)
+names(checkins)
+names(reviews)
+names(tips)
+```
+
+- Business has nested attributes
+- Checkins has an embeded frame in checkin_info
+- Reviews has an embeded frame in votes
+- Tips is a straight data frame
+- Users is heavily nested
+
+```{r clean_data}
+# votes data
+review_votes <- rbind(reviews$votes)
+review_votes$review_id <- reviews$review_id
+reviews$date <- ymd(reviews$date)
+reviews <- reviews[!names(reviews) %in% c("votes", "type")]
+
+# checkin data
+checkin_info <- rbind(checkins$checkin_info)
+checkin_info$business_id <- checkins$business_id
+checkins <- checkin_info
+rm(checkin_info)
+
+# business data
+business_attributes <- rbind(business$attributes)
+business_attributes$business_id <- business$business_id
+#attributes$`Accepts Credit Cards` <- unlist(attributes$`Accepts Credit Cards`)
+business <- select(business, -c(type))
+#bus_attributes <- business$attributes
+business <- business[, names(business) != "attributes"]
+
+# all glory and honor to @hrbrmstr
+kludge <- function(i) {
+  
+  data.frame(id=business[i,]$business_id,
+             add_rownames(do.call(rbind.data.frame, business[i,]$hours), "day"),
+             stringsAsFactors=FALSE)
+  
+}
+
+business_hours <- bind_rows(pblapply(1:nrow(business), kludge))
+business <- business[, names(business) != "hours"]
+
+# tips data
+tips$date <- ymd(tips$date)
+tips <- tips[!names(tips) %in% c("type")]
+
+# users data
+users$yelping_since <- ymd(paste0(users$yelping_since, "-01"))
+compliments <- users$compliments
+users <- users[,names(users) != "compliments"]
+compliments$user_id <- users$user_id
+#clean up names in our compliments data_table
+names(compliments) <- gsub("\\.", "_", names(compliments))
+```
+
+Reference the Yelp [categories documentation](https://www.yelp.com/developers/documentation/v2/all_category_list).
+
+
+```{r business_categories}
+categories_url <- 'https://s3-media2.fl.yelpcdn.com/assets/srv0/developer_pages/5e749b17ad6a/assets/json/categories.json'
+business_categories <- fromJSON(categories_url)
+```
+
+## Neighborhoods
+https://www.yelp.com/developers/documentation/v2/neighborhood_list
+Selector: ul.bullet-list-round:nth-child(3)
+

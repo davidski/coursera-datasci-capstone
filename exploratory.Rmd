@@ -1,79 +1,10 @@
 ---
-title: "Exploratory data analysis"
+title: "Exploratory Analysis"
 author: "David F. Severski (@dseverski)"
-date: "October 7, 2015"
-output: 
-  html_document: 
-    toc: yes
+date: "October 21, 2015"
+output: html_document
 ---
 
-Data is from the [Yelp dataset challenge](http://www.yelp.com/dataset_challenge)
-
-Examples of the data are at https://github.com/Yelp/dataset-examples
-
-```{r}
-library(jsonlite)
-library(dplyr)
-library(lubridate)
-library(ggplot2)
-```
-
-```{r read_from_json, eval=FALSE}
-reviews <- stream_in(file("./data/yelp_academic_dataset_review.json"))
-checkins <- stream_in(file("./data/yelp_academic_dataset_checkin.json"))
-tips <- stream_in(file("./data/yelp_academic_dataset_tip.json"))
-business <- stream_in(file("./data/yelp_academic_dataset_business.json"))
-users <- stream_in(file("./data/yelp_academic_dataset_user.json"), verbose = TRUE)
-```
-
-```{r, read_from_rdata}
-load('data/business.Rdata')
-load('data/checkins.Rdata')
-load('data/reviews.Rdata')
-load('data/tips.Rdata')
-load('data/users.Rdata')
-```
-
-
-```{r show_names, echo=FALSE}
-names(business)
-names(checkins)
-names(reviews)
-names(tips)
-```
-
-- Business has nested in attributes
-- Checkins has an embeded frame in checkin_info
-- Reviews has an embeded frame in votes
-- Tips is a straight data frame
-- Users is heavily nested
-
-```{r, clean_data}
-# votes data
-votes <- rbind(reviews$votes)
-votes$review_id <- reviews$review_id
-reviews$date <- ymd(reviews$date)
-reviews <- reviews[!names(reviews) %in% c("votes", "type")]
-
-# checkins data
-checkin_info <- rbind(checkins$checkin_info)
-checkin_info$business_id <- checkins$business_id
-
-# business data
-attributes <- rbind(business$attributes)
-#attributes$`Accepts Credit Cards` <- unlist(attributes$`Accepts Credit Cards`)
-business <- select(business, -c(type))
-
-# tips data
-tips$date <- ymd(tips$date)
-tips <- tips[!names(tips) %in% c("type")]
-
-# users data
-users$yelping_since <- ymd(paste0(users$yelping_since, "-01"))
-```
-
-
-All we really care about is `checkin_info`, which we link to the `business_id`
 
 # Summarize Data
 
@@ -94,7 +25,7 @@ knitr::kable(summary(tips))
 Lots of data for a few states. AZ is particularly heavy.
 
 ```{r}
-ggplot(business, aes(x=reorder(state, as.numeric(state), function(y) {-1*length(y)}))) +geom_bar()
+ggplot(business, aes(x=reorder(state, as.numeric(state), function(y) {-1*length(y)}))) + geom_bar()
 ```
 
 
@@ -163,4 +94,21 @@ gg
 
 ```{r}
 table(business[business$longitude>-10,c("state")])
+```
+
+```{r most_popular_reviews }
+review_votes %>% mutate(votes=(funny + useful+cool)) %>% arrange(desc(votes)) %>% head()
+reviews[reviews$review_id=="5w_yWEGVXVEYYbnD0Roi6g",]$text
+business[,c("neighborhoods", "stars")] %>% as_data_frame %>% mutate(neighborhoods=as.character(neighborhoods)) %>% group_by(neighborhoods) %>% summarize(avg_stars=mean(stars)) %>% filter(neighborhoods=="The Strip")
+
+business[,c("neighborhoods", "stars")] %>% as_data_frame %>% mutate(neighborhoods=as.character(neighborhoods)) %>% group_by(neighborhoods) %>% summarize(avg_stars=mean(stars), number_business=n()) -> dat
+
+dat %>% filter(neighborhoods!="character(0)") ->dat2
+ggplot(dat2, aes(x=number_business, y=avg_stars)) + geom_point() + theme_minimal() + scale_x_log10()
+```
+
+```{r checkins}
+library(tidyr)
+gather(checkins, timeframe, occurances, -business_id) -> tall_checkins
+
 ```
